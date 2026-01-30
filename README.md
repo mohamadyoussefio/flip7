@@ -25,9 +25,9 @@ Flip 7 is a "Press Your Luck" style game.
 
 ### 2. Scoring Algorithm
 Points are calculated following the strict mathematical order imposed by the modifiers:
-1. Base Sum**: Total of all number cards (the 0 card is worth 0 points).
-2. x2 Multiplier**: Doubles only the score of the number cards; it does not affect fixed modifiers.
-3. Fixed Bonuses**: Addition of modification cards ranging from +2 to +10.
+1. **Base Sum**: Total of all number cards (the 0 card is worth 0 points).
+2. **x2 Multiplier**: Doubles only the score of the number cards; it does not affect fixed modifiers.
+3. **Fixed Bonuses**: Addition of modification cards ranging from +2 to +10.
 4. **Flip 7 Premium**: Addition of the final 15-point bonus.
 
 ---
