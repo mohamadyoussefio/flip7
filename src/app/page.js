@@ -26,7 +26,7 @@ export default function Home() {
               Standard Edition
             </div>
             <h1 className="text-9xl font-black tracking-tighter text-black italic">
-              TC FLIP<span className="text-gray-300">7</span>
+              FLIP<span className="text-gray-300">7</span>
             </h1>
             <div className="h-1 w-24 bg-black mx-auto"></div>
           </div>
@@ -39,6 +39,14 @@ export default function Home() {
               <p className="text-[10px] font-medium text-gray-400 uppercase tracking-[0.2em]">
                 Created by Mohamad Youssef & Majid Mina
               </p>
+              <a
+                href="https://github.com/mohamadyoussefio/flip7.git"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-[10px] font-bold uppercase tracking-widest text-black hover:opacity-60 transition-opacity border-b border-black pb-0.5"
+              >
+                View Source Code on Github
+              </a>
             </div>
           </div>
 
