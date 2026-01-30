@@ -26,7 +26,7 @@ export default function Home() {
               Standard Edition
             </div>
             <h1 className="text-9xl font-black tracking-tighter text-black italic">
-              FLIP<span className="text-gray-300">7</span>
+              TC FLIP<span className="text-gray-300">7</span>
             </h1>
             <div className="h-1 w-24 bg-black mx-auto"></div>
           </div>
