@@ -9,9 +9,6 @@ export const useGameStore = create((set, get) => ({
   gameStatus: 'LOBBY',
   isProcessing: false,
   roundNumber: 1,
-  logs: [],
-
-  addLog: (msg) => set((state) => ({ logs: [`> ${msg}`, ...state.logs] })),
 
   startGame: (names) => {
     const players = names.map(name => ({
@@ -20,20 +17,10 @@ export const useGameStore = create((set, get) => ({
       hand: [],
       bankedScore: 0,
       isActive: true,
-      isFrozen: false,
       secondChances: 0,
       status: 'PLAYING'
     }));
-    
-    set({ 
-      deck: generateDeck(), 
-      players, 
-      activePlayerIndex: 0, 
-      gameStatus: 'PLAYING',
-      isProcessing: false,
-      roundNumber: 1,
-      logs: []
-    });
+    set({ deck: generateDeck(), players, activePlayerIndex: 0, gameStatus: 'PLAYING', isProcessing: false, roundNumber: 1 });
   },
 
   hit: () => {
@@ -50,177 +37,130 @@ export const useGameStore = create((set, get) => ({
 
     hand.push(card);
     player.hand = hand;
-    newPlayers[activePlayerIndex] = player;
-    set({ deck: newDeck, players: newPlayers });
 
-    let turnEnding = false;
-    let delay = 0;
     let triggerFlip3 = false;
+    let turnShouldEnd = false;
 
     if (card.type === 'ACTION') {
       if (card.action === 'FREEZE') {
-        player.isFrozen = true;
         player.isActive = false;
-        player.status = 'BUSTED';
-        turnEnding = true;
-        delay = 2000;
+        turnShouldEnd = true;
       } else if (card.action === 'FLIP_THREE') {
         triggerFlip3 = true;
       } else if (card.action === 'SECOND_CHANCE') {
         if (player.secondChances === 0) {
-          player.secondChances++;
+          player.secondChances = 1;
         } else {
           let targetIdx = (activePlayerIndex + 1) % newPlayers.length;
-          let foundTarget = false;
           for (let i = 0; i < newPlayers.length; i++) {
-            let p = newPlayers[targetIdx];
-            if (p.isActive && p.secondChances === 0) {
-              p.secondChances++;
-              foundTarget = true;
+            if (newPlayers[targetIdx].isActive && newPlayers[targetIdx].secondChances === 0) {
+              newPlayers[targetIdx].secondChances = 1;
               break;
             }
             targetIdx = (targetIdx + 1) % newPlayers.length;
           }
-          hand.pop();
+          hand.pop(); 
           player.hand = hand;
         }
       }
     } else if (card.type === 'NUMBER') {
-      const currentHandNumbers = hand.slice(0, -1).filter(c => c.type === 'NUMBER');
-      const isDuplicate = currentHandNumbers.some(c => c.value === card.value);
+      const numbersInHand = hand.filter(c => c.type === 'NUMBER');
+      const isDuplicate = numbersInHand.slice(0, -1).some(c => c.value === card.value);
 
       if (isDuplicate) {
         if (player.secondChances > 0) {
-          player.secondChances--;
+          player.secondChances = 0;
           const scIdx = hand.findIndex(c => c.action === 'SECOND_CHANCE');
           if (scIdx > -1) hand.splice(scIdx, 1);
           hand.pop();
           player.hand = hand;
-          newPlayers[activePlayerIndex] = player;
-          set({ players: [...newPlayers] });
-          return;
         } else {
           player.isActive = false;
-          player.status = 'BUSTED';
-          turnEnding = true;
-          delay = 2000;
-        }
-      } else {
-        const uniqueNumbers = new Set(
-          hand.filter(c => c.type === 'NUMBER').map(c => c.value)
-        );
-        if (uniqueNumbers.size >= 7) {
-          player.bankedScore += calculateScore(hand);
-          player.isActive = false;
-          player.status = 'WON_ROUND';
-          turnEnding = true;
-          delay = 3000;
-          if (player.bankedScore >= 200) {
-            set({ players: newPlayers, isProcessing: true });
-            setTimeout(() => set({ gameStatus: 'GAME_OVER', isProcessing: false }), 1500);
-            return;
-          }
+          turnShouldEnd = true;
         }
       }
+    }
+
+    const uniqueNumbers = new Set(hand.filter(c => c.type === 'NUMBER').map(c => c.value));
+    if (uniqueNumbers.size >= 7 && player.isActive) {
+      player.bankedScore += calculateScore(hand);
+      player.isActive = false;
+      player.status = 'WON_ROUND';
+      turnShouldEnd = true;
     }
 
     newPlayers[activePlayerIndex] = player;
-    set({ players: newPlayers });
+    set({ deck: newDeck, players: newPlayers });
 
-    if (triggerFlip3) {
-      get().resolveFlipThree(3);
-      return;
-    }
-
-    if (turnEnding) {
+    if (turnShouldEnd) {
       set({ isProcessing: true });
       setTimeout(() => {
-        const currentPlayers = [...get().players];
-        const currentP = { ...currentPlayers[activePlayerIndex] };
-        currentP.hand = [];
-        currentP.status = 'PLAYING';
-        currentPlayers[activePlayerIndex] = currentP;
-        set({ players: currentPlayers });
-        get().nextTurn();
-      }, delay);
+        const finalPlayers = [...get().players];
+        const p = finalPlayers[activePlayerIndex];
+        
+        if (p.status !== 'WON_ROUND') p.status = 'BUSTED';
+        
+        set({ players: finalPlayers });
+
+        setTimeout(() => {
+          if (p.bankedScore >= 200) {
+            set({ gameStatus: 'GAME_OVER', isProcessing: false });
+          } else {
+            const resetPlayers = [...get().players];
+            resetPlayers[activePlayerIndex].hand = [];
+            set({ players: resetPlayers, isProcessing: false });
+            get().nextTurn();
+          }
+        }, 100);
+      }, 100); 
+    } else if (triggerFlip3) {
+      get().resolveFlipThree(3);
     }
   },
 
-  resolveFlipThree: (cardsLeft) => {
-    if (cardsLeft <= 0) {
-      set({ isProcessing: false });
-      return;
-    }
+  resolveFlipThree: (count) => {
+    if (count <= 0) return;
     set({ isProcessing: true });
-    
     setTimeout(() => {
       const { players, activePlayerIndex } = get();
-      const currentPlayer = players[activePlayerIndex];
-
-      if (!currentPlayer.isActive || currentPlayer.status === 'BUSTED' || currentPlayer.status === 'WON_ROUND') {
+      if (!players[activePlayerIndex].isActive) {
         set({ isProcessing: false });
         return;
       }
-
       set({ isProcessing: false });
       get().hit();
-
-      const updatedPlayers = get().players;
-      const updatedPlayer = updatedPlayers[activePlayerIndex];
-      
-      if (!updatedPlayer.isActive || updatedPlayer.status === 'BUSTED' || updatedPlayer.status === 'WON_ROUND') {
-        set({ isProcessing: false });
-        return;
-      }
-
-      get().resolveFlipThree(cardsLeft - 1);
-    }, 800);
+      get().resolveFlipThree(count - 1);
+    }, 1000);
   },
 
   stay: () => {
     const { players, activePlayerIndex } = get();
     const newPlayers = [...players];
     const player = { ...newPlayers[activePlayerIndex] };
-    const score = calculateScore(player.hand);
-    player.bankedScore += score;
+    player.bankedScore += calculateScore(player.hand);
     player.hand = [];
     player.isActive = false;
     player.status = 'FOLDED';
     newPlayers[activePlayerIndex] = player;
     set({ players: newPlayers });
-    if (player.bankedScore >= 200) {
-      set({ gameStatus: 'GAME_OVER' });
-    } else {
-      get().nextTurn();
-    }
+    if (player.bankedScore >= 200) set({ gameStatus: 'GAME_OVER' });
+    else get().nextTurn();
   },
 
   nextTurn: () => {
     const { players, activePlayerIndex } = get();
-    let nextIndex = (activePlayerIndex + 1) % players.length;
-    let attempts = 0;
-    while (!players[nextIndex].isActive && attempts < players.length) {
-      nextIndex = (nextIndex + 1) % players.length;
-      attempts++;
+    let next = (activePlayerIndex + 1) % players.length;
+    let count = 0;
+    while (!players[next].isActive && count < players.length) {
+      next = (next + 1) % players.length;
+      count++;
     }
-    if (attempts === players.length) {
+    if (count === players.length) {
       const winner = players.find(p => p.bankedScore >= 200);
-      if (winner) {
-        set({ gameStatus: 'GAME_OVER', isProcessing: false });
-        return;
-      }
-      const resetPlayers = players.map(p => ({
-        ...p, isActive: true, isFrozen: false, hand: [], status: 'PLAYING', secondChances: 0
-      }));
-      const nextRound = (get().roundNumber || 1) + 1;
-      set({ 
-        players: resetPlayers, 
-        activePlayerIndex: 0, 
-        isProcessing: false,
-        roundNumber: nextRound 
-      });
+      if (winner) set({ gameStatus: 'GAME_OVER' });
+      else set({ players: players.map(p => ({ ...p, isActive: true, hand: [], status: 'PLAYING', secondChances: 0 })), activePlayerIndex: 0, roundNumber: get().roundNumber + 1 });
     } else {
-      set({ activePlayerIndex: nextIndex, isProcessing: false });
+      set({ activePlayerIndex: next });
     }
   },
 
