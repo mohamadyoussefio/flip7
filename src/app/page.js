@@ -216,7 +216,7 @@ export default function Home() {
             disabled={!activePlayer?.isActive || isProcessing}
             className="flex-1 py-6 bg-black text-white text-xs font-black uppercase tracking-[0.5em] transition-all hover:bg-gray-800 disabled:opacity-20 active:scale-95"
           >
-            Draw Card
+            Hit
           </button>
 
           <button
@@ -224,7 +224,7 @@ export default function Home() {
             disabled={!activePlayer?.isActive || isProcessing}
             className="flex-1 py-6 border-2 border-black text-black text-xs font-black uppercase tracking-[0.5em] transition-all hover:bg-gray-50 disabled:opacity-20 active:scale-95"
           >
-            Bank Points
+            Stand
           </button>
 
           <button
