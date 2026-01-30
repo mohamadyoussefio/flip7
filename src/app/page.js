@@ -35,6 +35,11 @@ export default function Home() {
             <p className="text-lg font-bold uppercase tracking-widest text-black">
               Objective: 200 Points
             </p>
+            <div className="pt-4">
+              <p className="text-[10px] font-medium text-gray-400 uppercase tracking-[0.2em]">
+                Created by Mohamad Youssef & Majid Mina
+              </p>
+            </div>
           </div>
 
           <div className="pt-6">
@@ -186,7 +191,7 @@ export default function Home() {
                     </span>
                   </div>
                 </div>
-                
+
                 <div className="flex flex-wrap gap-4 min-h-[200px]">
                   {p.hand.length === 0 && p.isActive && (
                     <div className="w-full flex items-center justify-center text-[10px] font-bold uppercase tracking-[0.4em] text-gray-300">
