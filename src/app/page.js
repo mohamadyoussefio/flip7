@@ -153,7 +153,7 @@ export default function Home() {
                   }
                 `}
               >
-                {/* {p.status === "BUSTED" && (
+                {p.status === "BUSTED" && (
                   <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex items-center justify-center animate-in fade-in">
                     <div className="border-2 border-black px-6 py-4 bg-white text-center">
                       <span className="text-sm font-black uppercase tracking-[0.4em]">
@@ -161,8 +161,8 @@ export default function Home() {
                       </span>
                     </div>
                   </div>
-                )} */}
-                
+                )}
+
                 {p.status === "WON_ROUND" && (
                   <div className="absolute inset-0 z-20 bg-white/80 backdrop-blur-sm flex items-center justify-center animate-in fade-in">
                     <div className="bg-black text-white px-6 py-4 text-center">
