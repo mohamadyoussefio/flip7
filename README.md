@@ -33,9 +33,6 @@ Points are calculated following the strict mathematical order imposed by the mod
 ---
 ## Installation
 
-### Clean Architecture
-This repository is configured to respect academic constraints (no node_modules or .next folders in the Git history).
-
 1. Clone the project.
 ```bash
 git clone https://github.com/mohamadyoussefio/flip7.git
@@ -43,10 +40,10 @@ cd flip7
 ```
 2. Install dependencies:
 ```bash
-   npm install:
+npm install
 ```
 3. Launch the application
 ```bash
 npm run dev
 ```
-4. Access the game at http://localhost:3000
+4. Access the game locally at http://localhost:3000
